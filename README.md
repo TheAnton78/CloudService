@@ -50,18 +50,18 @@
 |---------------|------------------|-------------------------|
 | id            | BIGINT           | PRIMARY KEY, AUTO_INCREMENT |
 | user_id       | BIGINT           | FOREIGN KEY REFERENCES usersData(id)  |
-| file_name    | VARCHAR(255)     | NOT NULL                |
-| upload_time    | TIMESTAMP        | DEFAULT CURRENT_TIMESTAMP |
+| filename      | VARCHAR(255)     | NOT NULL                |
+| filedata      |  VARCHAR(255)    |                         |
+| filehash      |  VARCHAR(255)    |                         |
 
 ## Тестирование
 
-Для тестирования приложения используются JUnit и Mockito. Тесты размещаются в директории `src/test/java` и структурированы как:
+Для тестирования приложения используются JUnit и Mockito и интеграционные тесты с использованием testcontainer . Тесты размещаются в директории `src/test/java` и структурированы как:
 
 - **Контроллеры**: Тесты для проверки API.
 - **Сервисы**: Тесты для проверки бизнес-логики.
 - **Репозитории**: Тесты для проверки взаимодействия с базой данных.
 
-Пример простого теста для контроллера:
 
 
 

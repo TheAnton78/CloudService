@@ -14,6 +14,7 @@ import ru.netology.cloudservice.repository.FileRepository;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class FileService {
@@ -28,30 +29,24 @@ public class FileService {
 
     public List<FileInfo> listFiles(int limit, User userId) {
         List<FileInfo> fileInfoList = new ArrayList<>();
-        int repositoryFiles = fileRepository.findAll().size();
-        long fileId = 1;
 
-            while (fileInfoList.size() < limit && fileInfoList.size() < repositoryFiles) {
-
-                FileEntity fileEntity = fileRepository.findByIdAndUserId(fileId, userId);
-
-                if(fileEntity != null) {
-                    FileInfo fileInfo = new FileInfo(fileEntity.getFileName(), fileEntity.getFileData().length());
-                    fileInfoList.add(fileInfo);
-                }
-                fileId++;
-            }
-
-//            while (fileInfoList.size() < repositoryFiles) {
-//                FileEntity fileEntity = fileRepository.findById(fileId);
-//                if(fileEntity != null) {
-//                    FileInfo fileInfo = new FileInfo(fileEntity.getFileName(), fileEntity.getFileData().length);
-//                    fileInfoList.add(fileInfo);
-//                }
-//                fileId++;
-//            }
-
+        fileRepository.findAll().stream().filter(file -> Objects.equals(file.getUserId(), userId))
+                .map(file -> fileInfoList.add(new FileInfo(file.getFileName(), file.getFileData().length())))
+                .close();
         return fileInfoList;
+//        FileEntity fileEntity = new FileEntity();
+//        System.out.println(repositoryFiles);
+//        for (FileEntity repositoryFile : repositoryFiles) {
+//            if (repositoryFile.getUserId().equals(userId)) {
+//                System.out.println();
+//                FileInfo fileInfo = new FileInfo(fileEntity.getFileName(), fileEntity.getFileData().length());
+//                fileInfoList.add(fileInfo);
+//            } else {
+//                return fileInfoList;
+//            }
+//        }
+//        System.out.println(fileInfoList);
+//        return fileInfoList;
     }
 
     public FileEntity uploadFile(File file, String filename, User userId) throws IOException {
@@ -80,6 +75,8 @@ public class FileService {
 
 
     public FileEntity getFile(String filename, User userId) {
+        System.out.println(userId);
+        System.out.println(fileRepository.findByIdAndUserId(18, userId));
         return fileRepository.findByFileNameAndUserId(filename, userId);
     }
 

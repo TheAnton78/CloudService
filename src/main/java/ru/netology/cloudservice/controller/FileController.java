@@ -211,6 +211,7 @@ public class FileController {
                     .body(new ErrorResponse("Unauthorized", 401));
         }
         User userId = customUserDetailsService.getUserByAuthToken(authToken);
+        System.out.println(userId);
         if (fileService.containsFile(filename, userId)){
             try {
                 FileEntity fileEntity = fileService.getFile(filename, userId);
