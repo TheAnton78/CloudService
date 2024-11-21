@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.netology.cloudservice.model.FileEntity;
 import ru.netology.cloudservice.model.User;
 import ru.netology.cloudservice.repository.UserRepository;
 
@@ -41,5 +42,9 @@ public class CustomUserDetailsService {
         User user = userRepository.findByAuthToken(oldAuthToken);
         user.setAuthToken(newAuthToken);
         userRepository.save(user);
+    }
+
+    public User getUserByAuthToken(String authToken) {
+        return userRepository.findByAuthToken(authToken);
     }
 }

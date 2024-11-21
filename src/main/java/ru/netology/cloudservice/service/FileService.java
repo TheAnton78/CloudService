@@ -1,24 +1,17 @@
 package ru.netology.cloudservice.service;
 
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import ru.netology.cloudservice.model.ErrorResponse;
 import ru.netology.cloudservice.model.FileEntity;
 import ru.netology.cloudservice.model.FileInfo;
+import ru.netology.cloudservice.model.File;
+import ru.netology.cloudservice.model.User;
 import ru.netology.cloudservice.repository.FileRepository;
 
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,16 +26,17 @@ public class FileService {
     }
 
 
-    public List<FileInfo> listFiles(int limit) {
+    public List<FileInfo> listFiles(int limit, User userId) {
         List<FileInfo> fileInfoList = new ArrayList<>();
         int repositoryFiles = fileRepository.findAll().size();
         long fileId = 1;
 
             while (fileInfoList.size() < limit && fileInfoList.size() < repositoryFiles) {
 
-                FileEntity fileEntity = fileRepository.findById(fileId);
+                FileEntity fileEntity = fileRepository.findByIdAndUserId(fileId, userId);
+
                 if(fileEntity != null) {
-                    FileInfo fileInfo = new FileInfo(fileEntity.getFileName(), fileEntity.getFileData().length);
+                    FileInfo fileInfo = new FileInfo(fileEntity.getFileName(), fileEntity.getFileData().length());
                     fileInfoList.add(fileInfo);
                 }
                 fileId++;
@@ -60,35 +54,33 @@ public class FileService {
         return fileInfoList;
     }
 
-    public FileEntity uploadFile(MultipartFile file, String filename) throws IOException {
-
+    public FileEntity uploadFile(File file, String filename, User userId) throws IOException {
         FileEntity fileEntity = new FileEntity();
         fileEntity.setFileName(filename);
-        fileEntity.setFileData(file.getBytes());
+        fileEntity.setFileData(file.getFile());
+        fileEntity.setHash(file.getHash());
+        fileEntity.setUserId(userId);
         return fileRepository.save(fileEntity);
-
-
-
     }
 
-    public void deleteFile(String filename) throws Exception {
-        fileRepository.delete(fileRepository.findByFileName(filename));
+    public void deleteFile(String filename, User userId) throws Exception {
+        fileRepository.delete(fileRepository.findByFileNameAndUserId(filename, userId));
     }
 
 
-    public boolean containsFile(String filename) {
-        return fileRepository.findByFileName(filename) != null;
+    public boolean containsFile(String filename, User userId) {
+        return fileRepository.findByFileNameAndUserId(filename, userId) != null;
     }
 
-    public void renameFile(String oldName, String newName) {
-        FileEntity newFile = fileRepository.findByFileName(oldName);
+    public void renameFile(String oldName, String newName, User userId) {
+        FileEntity newFile = fileRepository.findByFileNameAndUserId(oldName, userId);
         newFile.setFileName(newName);
         fileRepository.save(newFile);
     }
 
 
-    public FileEntity getFile(String filename) {
-        return fileRepository.findByFileName(filename);
+    public FileEntity getFile(String filename, User userId) {
+        return fileRepository.findByFileNameAndUserId(filename, userId);
     }
 
 }

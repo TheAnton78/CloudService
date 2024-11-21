@@ -1,21 +1,24 @@
 package ru.netology.cloudservice.service;
 
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
+
 import ru.netology.cloudservice.model.FileEntity;
 import ru.netology.cloudservice.model.FileInfo;
+import ru.netology.cloudservice.model.File;
+import ru.netology.cloudservice.model.User;
 import ru.netology.cloudservice.repository.FileRepository;
+import ru.netology.cloudservice.repository.UserRepository;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -26,79 +29,134 @@ public class FileServiceTest {
     @Mock
     private FileRepository fileRepository;
 
+
+
     @InjectMocks
     private FileService fileService;
 
-    private MultipartFile mockFile;
-    private FileEntity fileEntity;
+    private User user = new User(13L, "passName", "passPassword", "pass");
 
-    @BeforeEach
-    public void setUp() {
-        fileEntity = new FileEntity();
-        fileEntity.setFileName("testFileService.txt");
-        fileEntity.setFileData("Sample data".getBytes());
-        mockFile = new MockMultipartFile("file", "testFileService.txt", "text/plain", "Sample data".getBytes());
-    }
 
     @Test
     public void testListFiles() {
+        // Создаем тестовые данные
+        FileEntity file1 = new FileEntity();
+        file1.setFileName("file1.txt");
+        file1.setFileData(("data1"));
+        file1.setUserId(user);
 
-        when(fileRepository.findById(0L)).thenReturn(fileEntity);
+        FileEntity file2 = new FileEntity();
+        file2.setFileName("file2.txt");
+        file2.setFileData("data2");
+        file1.setUserId(user);
+        List<FileEntity> files = new ArrayList<>();
+        files.add(file1);
+        files.add(file2);
+        System.out.println(files.size());
 
-        List<FileInfo> fileInfoList = fileService.listFiles(1);
 
-        assertEquals(1, fileInfoList.size());
-        assertEquals("testFileService.txt", fileInfoList.get(0).getFileName());
-        assertEquals("Sample data".length(), fileInfoList.get(0).getFileSize());
+        when(fileRepository.findAll()).thenReturn(files);
+        when(fileRepository.findByIdAndUserId(1, user)).thenReturn(file1);
+        when(fileRepository.findByIdAndUserId(2, user)).thenReturn(file2);
+
+
+
+        List<FileInfo> result = fileService.listFiles(2,user);
+
+        assertEquals(2, result.size());
+        assertEquals("file1.txt", result.get(0).getFileName());
+        assertEquals("file2.txt", result.get(1).getFileName());
     }
 
     @Test
     public void testUploadFile() throws IOException {
-        when(fileRepository.save(any(FileEntity.class))).thenReturn(fileEntity);
 
-        FileEntity savedFileEntity = fileService.uploadFile(mockFile, "testFileService.txt");
+        String filename = "newfile.txt";
+        String fileData = "test data";
+        String fileHash = "dummyhash";// предположим, что вы уже знаете, как генерировать хэш
 
-        assertNotNull(savedFileEntity);
-        assertEquals("testFileService.txt", savedFileEntity.getFileName());
-        verify(fileRepository, times(1)).save(any(FileEntity.class));
+        // Настраиваем моки
+        FileEntity mockFileEntity = new FileEntity();
+        mockFileEntity.setFileName(filename);
+        mockFileEntity.setFileData(fileData);
+        mockFileEntity.setHash(fileHash);
+        mockFileEntity.setUserId(user);
+        System.out.println(mockFileEntity);
+
+        when(fileRepository.save(mockFileEntity)).thenReturn(mockFileEntity);
+
+
+        FileEntity result = fileService.uploadFile(new File(fileHash, fileData), filename, user);
+        System.out.println(result);
+        assertNotNull(result);
+        assertEquals(filename, result.getFileName());
+        verify(fileRepository).save(any(FileEntity.class));
     }
 
     @Test
     public void testDeleteFile() throws Exception {
-        when(fileRepository.findByFileName("testFileService.txt")).thenReturn(fileEntity);
+        // Создаем тестовые данные
+        String filename = "fileToDelete.txt";
+        FileEntity fileEntity = new FileEntity();
+        fileEntity.setFileName(filename);
+        fileEntity.setUserId(user);
 
-        fileService.deleteFile("testFileService.txt");
+        when(fileRepository.findByFileNameAndUserId(filename, user)).thenReturn(fileEntity);
 
-        verify(fileRepository, times(1)).delete(fileEntity);
+        // Тестируем метод
+        fileService.deleteFile(filename, user);
+
+        verify(fileRepository).delete(fileEntity); // Убедитесь, что метод delete был вызван
     }
 
     @Test
     public void testContainsFile() {
-        when(fileRepository.findByFileName("testFileService.txt")).thenReturn(fileEntity);
+        // Создаем тестовые данные
+        String filename = "existingFile.txt";
+        FileEntity fileEntity = new FileEntity();
+        fileEntity.setFileName(filename);
+        fileEntity.setUserId(user);
 
-        boolean exists = fileService.containsFile("testFileService.txt");
+        when(fileRepository.findByFileNameAndUserId(filename, user)).thenReturn(fileEntity);
 
-        assertTrue(exists);
+        // Тестируем метод
+        boolean result = fileService.containsFile(filename, user);
+
+        assertTrue(result);
     }
 
     @Test
     public void testRenameFile() {
-        when(fileRepository.findByFileName("testFileService.txt")).thenReturn(fileEntity);
+        // Создаем тестовые данные
+        String oldName = "oldFileName.txt";
+        String newName = "newFileName.txt";
+        FileEntity fileEntity = new FileEntity();
+        fileEntity.setFileName(oldName);
+        fileEntity.setUserId(user);
 
-        fileService.renameFile("testFileService.txt", "newFile.txt");
+        when(fileRepository.findByFileNameAndUserId(oldName, user)).thenReturn(fileEntity);
 
-        ArgumentCaptor<FileEntity> argumentCaptor = ArgumentCaptor.forClass(FileEntity.class);
-        verify(fileRepository, times(1)).save(argumentCaptor.capture());
-        assertEquals("newFile.txt", argumentCaptor.getValue().getFileName());
+        // Тестируем метод
+        fileService.renameFile(oldName, newName, user);
+
+        assertEquals(newName, fileEntity.getFileName());
+        verify(fileRepository).save(fileEntity); // Убедитесь, что метод save был вызван
     }
 
     @Test
     public void testGetFile() {
-        when(fileRepository.findByFileName("testFileService.txt")).thenReturn(fileEntity);
+        // Создаем тестовые данные
+        String filename = "fileToGet.txt";
+        FileEntity fileEntity = new FileEntity();
+        fileEntity.setFileName(filename);
+        fileEntity.setUserId(user);
 
-        FileEntity retrievedFile = fileService.getFile("testFileService.txt");
+        when(fileRepository.findByFileNameAndUserId(filename, user)).thenReturn(fileEntity);
 
-        assertNotNull(retrievedFile);
-        assertEquals("testFileService.txt", retrievedFile.getFileName());
+        // Тестируем метод
+        FileEntity result = fileService.getFile(filename, user);
+
+        assertNotNull(result);
+        assertEquals(filename, result.getFileName());
     }
 }

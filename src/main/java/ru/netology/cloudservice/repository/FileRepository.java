@@ -4,11 +4,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import ru.netology.cloudservice.model.FileEntity;
+import ru.netology.cloudservice.model.User;
 
 @Repository
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
     FileEntity findByFileName(String name);
-    FileEntity findById(long id);
+    FileEntity findByIdAndUserId(long id, User userId);
+    FileEntity findByFileNameAndUserId(String fileName, User userId);
     void delete(FileEntity file);
 
 }

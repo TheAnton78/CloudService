@@ -3,16 +3,23 @@ package ru.netology.cloudservice.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileResponse {
+
+public class File {
     @JsonProperty("hash")
     private String hash;
 
     @JsonProperty("file")
-    private byte[] file;
+    private String file;
+
+
+
+
+
 }
 

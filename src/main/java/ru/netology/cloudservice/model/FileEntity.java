@@ -17,14 +17,17 @@ public class FileEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long id;
 
-
-
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    private User userId;
+    @Column(name = "filename")
     private String fileName;
-
-
-    private byte[] fileData;
+    @Column(name = "filedata")
+    private String fileData;
+    private String hash;
 
 }
 

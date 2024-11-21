@@ -1,0 +1,22 @@
+version: '3'
+services:
+  your-service-name:
+    image: cloud-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8043:8043"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/Users
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=Qazxcds123
+
+  db:
+    image: postgres:16  # Выберите нужную версию PostgreSQL
+    environment:
+      POSTGRES_USER: postgres            # Укажите имя пользователя
+      POSTGRES_PASSWORD: Qazxcds123           # Укажите пароль
+      POSTGRES_DB: Users           # Укажите имя базы данных
+    ports:
+      - "5433:5433"

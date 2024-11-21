@@ -5,8 +5,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class FileUploadResponse {
     private String message;
+
+    public FileUploadResponse(String message) {
+        this.message = message;
+    }
 }
