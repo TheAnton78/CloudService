@@ -16,15 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 public class TestFileRepository {
 
+    private final User user = new User(1L, "passN", "passP", "pass");
     @Autowired
     private FileRepository fileRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     private FileEntity fileEntity;
-
-    private final User user = new User(1L, "passN", "passP", "pass");
 
     @BeforeEach
     public void setUp() {
@@ -41,8 +38,6 @@ public class TestFileRepository {
     public void tearDown() {
         fileRepository.delete(fileEntity);
     }
-
-
 
 
     @Test

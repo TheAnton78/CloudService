@@ -40,7 +40,7 @@ public class ConverterMultipartToFile implements Converter<MultipartFile, File> 
         }
     }
 
-    private String toStringConverter(byte[] bytes){
+    private String toStringConverter(byte[] bytes) {
         StringBuilder stringBuilder = new StringBuilder();
         Stream.of(bytes).forEach(stringBuilder::append);
         return stringBuilder.toString();

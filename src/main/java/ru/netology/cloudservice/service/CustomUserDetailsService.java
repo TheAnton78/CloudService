@@ -14,8 +14,7 @@ public class CustomUserDetailsService {
     private UserRepository userRepository;
 
 
-
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public User loadUser(String username) {
         User user = userRepository.findByUsername(username);
@@ -34,6 +33,7 @@ public class CustomUserDetailsService {
     public boolean containsUsername(String username) {
         return userRepository.findByUsername(username) != null;
     }
+
     public boolean uncontainsAuthToken(String authToken) {
         return userRepository.findByAuthToken(authToken) == null;
     }

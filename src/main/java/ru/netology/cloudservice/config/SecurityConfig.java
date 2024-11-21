@@ -21,7 +21,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .anyRequest().permitAll() // Разрешить все запросы
                 );
-                // Включить форму входа (если требуется)
+        // Включить форму входа (если требуется)
 
 
         return http.build();

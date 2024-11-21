@@ -6,7 +6,8 @@ import ru.netology.cloudservice.model.User;
 import java.util.Optional;
 
 @org.springframework.stereotype.Repository
-public interface UserRepository extends JpaRepository<User, Long>{
+public interface UserRepository extends JpaRepository<User, Long> {
     User findByUsername(String username);
+
     User findByAuthToken(String authToken);
 }

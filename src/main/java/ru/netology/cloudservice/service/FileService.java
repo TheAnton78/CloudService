@@ -34,19 +34,7 @@ public class FileService {
                 .map(file -> fileInfoList.add(new FileInfo(file.getFileName(), file.getFileData().length())))
                 .close();
         return fileInfoList;
-//        FileEntity fileEntity = new FileEntity();
-//        System.out.println(repositoryFiles);
-//        for (FileEntity repositoryFile : repositoryFiles) {
-//            if (repositoryFile.getUserId().equals(userId)) {
-//                System.out.println();
-//                FileInfo fileInfo = new FileInfo(fileEntity.getFileName(), fileEntity.getFileData().length());
-//                fileInfoList.add(fileInfo);
-//            } else {
-//                return fileInfoList;
-//            }
-//        }
-//        System.out.println(fileInfoList);
-//        return fileInfoList;
+
     }
 
     public FileEntity uploadFile(File file, String filename, User userId) throws IOException {

@@ -22,10 +22,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.netology.cloudservice.model.LoginRequest;
 
 
-
-
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+
 import org.json.JSONObject;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,7 +41,6 @@ public class ControllerTest {
     private MockMvc mockMvc;
 
 
-
     private String authToken;
 
     @BeforeEach
@@ -53,7 +52,7 @@ public class ControllerTest {
         System.out.println("cm");
         String response = mockMvc.perform(post("/cloud/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"login\":\"testUser\",\"password\":\"testPassword\"}"))
+                        .content("{\"login\":\"testUser\",\"password\":\"testPassword\"}"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         authToken = "Bearer " + new JSONObject(response).getString("auth-token");
@@ -71,13 +70,9 @@ public class ControllerTest {
                 .andExpect(jsonPath("$.message").value("Success upload"));
 
 
-
-
         System.out.println(response.split("'")[0]);
 
     }
-
-
 
 
     @Test
@@ -100,7 +95,7 @@ public class ControllerTest {
 
     @Test
     public void testLogout() throws Exception {
-        mockMvc.perform((RequestBuilder) post("/cloud/logout")
+        mockMvc.perform(post("/cloud/logout")
                         .header("auth-token", authToken))
                 .andExpect(status().isOk());
     }

@@ -18,8 +18,5 @@ public class File {
     private String file;
 
 
-
-
-
 }
 

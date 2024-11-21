@@ -30,11 +30,10 @@ public class FileServiceTest {
     private FileRepository fileRepository;
 
 
-
     @InjectMocks
     private FileService fileService;
 
-    private User user = new User(13L, "passName", "passPassword", "pass");
+    private final User user = new User(13L, "passName", "passPassword", "pass");
 
 
     @Test
@@ -60,8 +59,7 @@ public class FileServiceTest {
         when(fileRepository.findByIdAndUserId(2, user)).thenReturn(file2);
 
 
-
-        List<FileInfo> result = fileService.listFiles(2,user);
+        List<FileInfo> result = fileService.listFiles(2, user);
 
         assertEquals(2, result.size());
         assertEquals("file1.txt", result.get(0).getFileName());

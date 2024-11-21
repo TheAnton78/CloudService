@@ -24,14 +24,8 @@ import java.util.*;
 public class FileController {
     private final FileService fileService;
     private final CustomUserDetailsService customUserDetailsService;
-    private Set<String> sessions = new HashSet<>();
-    private final FileRepository fileRepository;
-    private  final UserRepository userRepository;
-
-
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-
+    private final Set<String> sessions = new HashSet<>();
 
 
     @Autowired
@@ -39,8 +33,7 @@ public class FileController {
         sessions.add("admin");
         this.fileService = fileService;
         this.customUserDetailsService = customUserDetailsService;
-        this.fileRepository = fileRepository;
-        this.userRepository = userRepository;
+
     }
 
     @PostMapping("/login")
@@ -48,11 +41,11 @@ public class FileController {
         System.out.println("mmmmn");
         AuthTokenGenerator authGenerator = new AuthTokenGenerator();
         LoginResponse loginResponse = new LoginResponse();
-        if(customUserDetailsService.containsUsername(loginRequest.getLogin())) {
+        if (customUserDetailsService.containsUsername(loginRequest.getLogin())) {
             User user = customUserDetailsService.loadUser(loginRequest.getLogin());
             System.out.println(user.getPassword() + " " + passwordEncoder.encode(loginRequest.getPassword()));
-            if(passwordEncoder.matches(loginRequest.getPassword(),
-                    user.getPassword())){
+            if (passwordEncoder.matches(loginRequest.getPassword(),
+                    user.getPassword())) {
                 String oldToken = user.getAuthToken();
                 String newToken = authGenerator.generateToken();
                 sessions.add("Bearer " + newToken);
@@ -61,16 +54,16 @@ public class FileController {
 
                 loginResponse.setAuthToken(newToken);
                 return ResponseEntity.ok().body(loginResponse);
-            }else {
+            } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ErrorResponse("Bad credentials", 400));
             }
-        }else{
+        } else {
             String newToken = authGenerator.generateToken();
             sessions.add("Bearer " + newToken);
             customUserDetailsService.uploadUser(loginRequest.getLogin(), loginRequest.getPassword(),
                     "Bearer " + newToken);
-            System.out.println( "User registered successfully");
+            System.out.println("User registered successfully");
             loginResponse.setAuthToken(newToken);
             return ResponseEntity.ok().body(loginResponse);
         }
@@ -90,7 +83,6 @@ public class FileController {
     }
 
 
-
     @PostMapping("/file")
     public ResponseEntity<?> uploadFile(@RequestHeader("auth-token") String authToken,
                                         @RequestParam("file") File file,
@@ -98,7 +90,7 @@ public class FileController {
         System.out.println(file.getFile() + " " + file.getHash());
         System.out.println(sessions);
         System.out.println(authToken);
-        if(!sessions.contains(authToken)){
+        if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
@@ -113,29 +105,18 @@ public class FileController {
                     .body(new ErrorResponse("Error uploading file", 400));
         }
     }
-//    @GetMapping("/test")
-//    public ResponseEntity<?> test(){
-//
-//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-//        User mockUser = new User();
-//        mockUser.setId(2L);
-//        mockUser.setUsername("ad");
-//        mockUser.setPassword(passwordEncoder.encode("5"));
-//        mockUser.setRole("USER");
-//        userRepository.save(mockUser);
-//        return ResponseEntity.ok(userRepository.findById(2L));
-//    }
+
 
     @GetMapping("/list")
     public ResponseEntity<?> listFiles(@RequestHeader("auth-token") String authToken,
                                        @RequestParam(value = "limit", defaultValue = "100") int limit) {
 
-        if(!sessions.contains(authToken)){
+        if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
 
-        if (limit > 1 && limit < 100){
+        if (limit > 1 && limit < 100) {
 
             try {
 
@@ -158,7 +139,7 @@ public class FileController {
     public ResponseEntity<?> deleteFile(@RequestHeader("auth-token") String authToken,
                                         @RequestParam("filename") String filename) {
 
-        if(!sessions.contains(authToken)){
+        if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
@@ -181,13 +162,13 @@ public class FileController {
     public ResponseEntity<?> renameFile(@RequestHeader("auth-token") String authToken,
                                         @RequestParam("filename") String oldName,
                                         @RequestBody RenameRequest renameRequest) {
-        if(!sessions.contains(authToken)){
+        if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
 
         User userId = customUserDetailsService.getUserByAuthToken(authToken);
-        if (fileService.containsFile(oldName, userId) ) {
+        if (fileService.containsFile(oldName, userId)) {
             try {
                 fileService.renameFile(oldName, renameRequest.getName(), userId);
                 return ResponseEntity.ok(new FileUploadResponse("Success upload"));
@@ -206,13 +187,13 @@ public class FileController {
                                           @RequestParam("filename") String filename) {
 
 
-        if(!sessions.contains(authToken)){
+        if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
         User userId = customUserDetailsService.getUserByAuthToken(authToken);
         System.out.println(userId);
-        if (fileService.containsFile(filename, userId)){
+        if (fileService.containsFile(filename, userId)) {
             try {
                 FileEntity fileEntity = fileService.getFile(filename, userId);
                 File file = new File(fileEntity.getHash(), fileEntity.getFileData());
