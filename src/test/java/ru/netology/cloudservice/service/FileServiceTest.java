@@ -48,16 +48,12 @@ public class FileServiceTest {
         file2.setFileName("file2.txt");
         file2.setFileData("data2");
         file1.setUserId(user);
+
         List<FileEntity> files = new ArrayList<>();
         files.add(file1);
         files.add(file2);
-        System.out.println(files.size());
 
-
-        when(fileRepository.findAll()).thenReturn(files);
-        when(fileRepository.findByIdAndUserId(1, user)).thenReturn(file1);
-        when(fileRepository.findByIdAndUserId(2, user)).thenReturn(file2);
-
+        when(fileRepository.findAllByUserId(user)).thenReturn(files);
 
         List<FileInfo> result = fileService.listFiles(2, user);
 
@@ -71,9 +67,9 @@ public class FileServiceTest {
 
         String filename = "newfile.txt";
         String fileData = "test data";
-        String fileHash = "dummyhash";// предположим, что вы уже знаете, как генерировать хэш
+        String fileHash = "dummyhash";
 
-        // Настраиваем моки
+
         FileEntity mockFileEntity = new FileEntity();
         mockFileEntity.setFileName(filename);
         mockFileEntity.setFileData(fileData);
@@ -104,7 +100,7 @@ public class FileServiceTest {
         // Тестируем метод
         fileService.deleteFile(filename, user);
 
-        verify(fileRepository).delete(fileEntity); // Убедитесь, что метод delete был вызван
+        verify(fileRepository).delete(fileEntity);
     }
 
     @Test
@@ -138,7 +134,7 @@ public class FileServiceTest {
         fileService.renameFile(oldName, newName, user);
 
         assertEquals(newName, fileEntity.getFileName());
-        verify(fileRepository).save(fileEntity); // Убедитесь, что метод save был вызван
+        verify(fileRepository).save(fileEntity);
     }
 
     @Test

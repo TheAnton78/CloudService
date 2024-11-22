@@ -29,10 +29,9 @@ public class FileService {
 
     public List<FileInfo> listFiles(int limit, User userId) {
         List<FileInfo> fileInfoList = new ArrayList<>();
-
-        fileRepository.findAll().stream().filter(file -> Objects.equals(file.getUserId(), userId))
-                .map(file -> fileInfoList.add(new FileInfo(file.getFileName(), file.getFileData().length())))
-                .close();
+        fileRepository.findAllByUserId(userId).stream().limit(limit).forEach(file -> {
+            fileInfoList.add(new FileInfo(file.getFileName(), file.getFileData().length()));
+        });
         return fileInfoList;
 
     }

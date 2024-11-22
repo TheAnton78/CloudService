@@ -25,7 +25,7 @@ public class UserRepositoryTest {
 
     private User user;
 
-    @BeforeEach // Этот метод выполнится перед каждым тестом
+    @BeforeEach
     public void setUp() {
         user = new User();
         user.setId(1L);
