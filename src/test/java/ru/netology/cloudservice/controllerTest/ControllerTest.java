@@ -70,7 +70,6 @@ public class ControllerTest {
                 .andExpect(jsonPath("$.message").value("Success upload"));
 
 
-        System.out.println(response.split("'")[0]);
 
     }
 

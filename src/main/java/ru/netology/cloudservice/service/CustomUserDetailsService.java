@@ -17,16 +17,14 @@ public class CustomUserDetailsService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public User loadUser(String username) {
-        User user = userRepository.findByUsername(username);
-        return user;
+        return userRepository.findByUsername(username);
     }
 
 
-    public void uploadUser(String username, String password, String authToken) {
-        if (userRepository.findByUsername(username) != null) {
+    public void uploadUser(User user) {
+        if (userRepository.findByUsername(user.getUsername()) != null) {
             throw new RuntimeException("User already exists");
         }
-        User user = new User(username, passwordEncoder.encode(password), authToken);
         userRepository.save(user);
     }
 
@@ -45,6 +43,7 @@ public class CustomUserDetailsService {
     }
 
     public User getUserByAuthToken(String authToken) {
+
         return userRepository.findByAuthToken(authToken);
     }
 }

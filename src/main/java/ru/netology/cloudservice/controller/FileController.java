@@ -1,6 +1,9 @@
 package ru.netology.cloudservice.controller;
 
 
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +22,16 @@ import ru.netology.cloudservice.service.FileService;
 import java.io.IOException;
 import java.util.*;
 
+
 @RestController
 @RequestMapping("/cloud")
 public class FileController {
+    private static final Logger LOG = LogManager.getLogger(FileController.class);
     private final FileService fileService;
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final Set<String> sessions = new HashSet<>();
+    private User currentUser = new User();
 
 
     @Autowired
@@ -38,12 +44,12 @@ public class FileController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) throws Exception {
-        System.out.println("mmmmn");
         AuthTokenGenerator authGenerator = new AuthTokenGenerator();
         LoginResponse loginResponse = new LoginResponse();
+        LOG.info(loginRequest.toString());
         if (customUserDetailsService.containsUsername(loginRequest.getLogin())) {
             User user = customUserDetailsService.loadUser(loginRequest.getLogin());
-            System.out.println(user.getPassword() + " " + passwordEncoder.encode(loginRequest.getPassword()));
+            currentUser = user;
             if (passwordEncoder.matches(loginRequest.getPassword(),
                     user.getPassword())) {
                 String oldToken = user.getAuthToken();
@@ -51,8 +57,8 @@ public class FileController {
                 sessions.add("Bearer " + newToken);
                 sessions.remove(oldToken);
                 customUserDetailsService.updateAuthToken(oldToken, "Bearer " + newToken);
-
                 loginResponse.setAuthToken(newToken);
+                LOG.info(loginResponse.toString());
                 return ResponseEntity.ok().body(loginResponse);
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -61,9 +67,10 @@ public class FileController {
         } else {
             String newToken = authGenerator.generateToken();
             sessions.add("Bearer " + newToken);
-            customUserDetailsService.uploadUser(loginRequest.getLogin(), loginRequest.getPassword(),
+            currentUser = new User(loginRequest.getLogin(), passwordEncoder.encode(loginRequest.getPassword()),
                     "Bearer " + newToken);
-            System.out.println("User registered successfully");
+            customUserDetailsService.uploadUser(currentUser);
+            LOG.info("User registered successfully");
             loginResponse.setAuthToken(newToken);
             return ResponseEntity.ok().body(loginResponse);
         }
@@ -71,14 +78,11 @@ public class FileController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader("auth-token") String authToken) {
-
+        LOG.info(String.format("call logout (auth-token: %s)", authToken));
         if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
-
         sessions.remove(authToken);
-
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -87,20 +91,17 @@ public class FileController {
     public ResponseEntity<?> uploadFile(@RequestHeader("auth-token") String authToken,
                                         @RequestParam("file") File file,
                                         @RequestParam(value = "filename", required = false) String filename) {
-        System.out.println(file.getFile() + " " + file.getHash());
-        System.out.println(sessions);
-        System.out.println(authToken);
+        LOG.info(String.format("call uploadFile (auth-token: %s filename: %s)", authToken, filename));
         if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
-        User userId = customUserDetailsService.getUserByAuthToken(authToken);
-        System.out.println(userId);
+        System.out.println(currentUser);
         try {
-            fileService.uploadFile(file, filename, userId);
-
+            fileService.uploadFile(file, filename, currentUser);
             return ResponseEntity.ok(new FileUploadResponse("Success upload"));
         } catch (IOException e) {
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse("Error uploading file", 400));
         }
@@ -110,17 +111,15 @@ public class FileController {
     @GetMapping("/list")
     public ResponseEntity<?> listFiles(@RequestHeader("auth-token") String authToken,
                                        @RequestParam(value = "limit", defaultValue = "100") int limit) {
-
+        LOG.info(String.format("call listFiles (auth-token: %s limit: %s currentUserID: %s)",
+                authToken, limit, currentUser.getId()));
         if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
-
         if (limit > 1 && limit < 100) {
-
             try {
-
-                List<FileInfo> files = fileService.listFiles(limit, customUserDetailsService.getUserByAuthToken(authToken));
+                List<FileInfo> files = fileService.listFiles(limit, currentUser);
                 return ResponseEntity.ok(files);
             } catch (Exception e) {
 
@@ -138,15 +137,15 @@ public class FileController {
     @DeleteMapping("/file")
     public ResponseEntity<?> deleteFile(@RequestHeader("auth-token") String authToken,
                                         @RequestParam("filename") String filename) {
-
+        LOG.info(String.format("call deleteFile (auth-token: %s filename: %s)", authToken, filename));
         if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
-        User userId = customUserDetailsService.getUserByAuthToken(authToken);
-        if (fileService.containsFile(filename, userId)) {
+
+        if (fileService.containsFile(filename, currentUser)) {
             try {
-                fileService.deleteFile(filename, customUserDetailsService.getUserByAuthToken(authToken));
+                fileService.deleteFile(filename, currentUser);
                 return ResponseEntity.ok(new FileUploadResponse("Success deleted"));
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -162,15 +161,17 @@ public class FileController {
     public ResponseEntity<?> renameFile(@RequestHeader("auth-token") String authToken,
                                         @RequestParam("filename") String oldName,
                                         @RequestBody RenameRequest renameRequest) {
+        LOG.info(String.format("call renameFile (auth-token: %s oldName: %s, newName: %s)",
+                authToken, oldName, renameRequest.getName()));
         if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
 
-        User userId = customUserDetailsService.getUserByAuthToken(authToken);
-        if (fileService.containsFile(oldName, userId)) {
+
+        if (fileService.containsFile(oldName, currentUser)) {
             try {
-                fileService.renameFile(oldName, renameRequest.getName(), userId);
+                fileService.renameFile(oldName, renameRequest.getName(), currentUser);
                 return ResponseEntity.ok(new FileUploadResponse("Success upload"));
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -185,17 +186,16 @@ public class FileController {
     @GetMapping("/file")
     public ResponseEntity<?> downloadFile(@RequestHeader("auth-token") String authToken,
                                           @RequestParam("filename") String filename) {
-
-
+        LOG.info(String.format("call downloadFile (auth-token: %s filename: %s)", authToken, filename));
         if (!sessions.contains(authToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", 401));
         }
-        User userId = customUserDetailsService.getUserByAuthToken(authToken);
-        System.out.println(userId);
-        if (fileService.containsFile(filename, userId)) {
+
+        System.out.println(currentUser);
+        if (fileService.containsFile(filename, currentUser)) {
             try {
-                FileEntity fileEntity = fileService.getFile(filename, userId);
+                FileEntity fileEntity = fileService.getFile(filename, currentUser);
                 File file = new File(fileEntity.getHash(), fileEntity.getFileData());
                 return ResponseEntity.ok().body(file);
             } catch (Exception e) {

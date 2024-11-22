@@ -75,7 +75,7 @@ public class FileServiceTest {
         mockFileEntity.setFileData(fileData);
         mockFileEntity.setHash(fileHash);
         mockFileEntity.setUserId(user);
-        System.out.println(mockFileEntity);
+
 
         when(fileRepository.save(mockFileEntity)).thenReturn(mockFileEntity);
 

@@ -53,7 +53,7 @@ public class CustomUserDetailsServiceTest {
         when(userRepository.findByUsername("newUser")).thenReturn(null);
 
 
-        customUserDetailsService.uploadUser("newUser", "password", "authToken456");
+        customUserDetailsService.uploadUser(new User("newUser", "password", "authToken456"));
 
 
         verify(userRepository, times(1)).save(any(User.class));
@@ -66,7 +66,7 @@ public class CustomUserDetailsServiceTest {
 
 
         assertThrows(RuntimeException.class, () -> {
-            customUserDetailsService.uploadUser("existingUser", "password", "authToken456");
+            customUserDetailsService.uploadUser(new User("existingUser", "password", "authToken456"));
         });
     }
 

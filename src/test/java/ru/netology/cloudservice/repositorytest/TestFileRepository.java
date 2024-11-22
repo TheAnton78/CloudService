@@ -42,7 +42,6 @@ public class TestFileRepository {
 
     @Test
     public void testFindByFileName() {
-        System.out.println(user);
         FileEntity foundFile = fileRepository.findByFileNameAndUserId("testFileRepository.txt", user);
 
         assertNotNull(foundFile);
